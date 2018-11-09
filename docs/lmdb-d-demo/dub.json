@@ -6,7 +6,7 @@
 	],
 	"copyright": "Created © 2018, Carsten Schlote",
 	"dependencies": {
-		"lmdb_d":"0.2.0"
+		"lmdb_d":"0.2.1"
 	},
 	"name": "lmdb-d-demo"
 }
