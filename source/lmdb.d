@@ -1,7 +1,6 @@
+
 import core.sys.posix.sys.types;
-
-
-/** @file lmdb.h
+/** @file lmdb.d
  *  @brief Lightning memory-mapped database library
  *
  *  @mainpage   Lightning Memory-Mapped Database Manager (LMDB)
@@ -170,7 +169,6 @@ import core.sys.posix.sys.types;
  *   the structure definitions as this is D style.
  * * A smal OO D class completes the low level structures.
  */
-
 
 extern (C):
 
@@ -1655,4 +1653,3 @@ int mdb_reader_list(MDB_env* env, MDB_msg_func* func, void* ctx);
      */
 int mdb_reader_check(MDB_env* env, int* dead);
 /** @} */
-

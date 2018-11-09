@@ -5,30 +5,43 @@ import core.stdc.string;
 
 import std.bitmanip;
 import std.conv;
+import std.format;
 import std.random;
 import std.stdio;
 import std.string;
 
-//import lmdb_d;
-
+/** Minimalistic demo code for lmdb 
+ * @param args Commandline args as a dynamic array of strings
+ */
 void main(const string[] args)
 {
+	writefln("lmdb binding demo, compiled on %s", __DATE__);
+
+	/* Extract the lmdb version */
 	int major, minor, patch;
 	char* vstr_c = mdb_version(&major, &minor, &patch);
 	const string vstr = to!string(vstr_c);
 	writefln("The installed lmdb version is %s", vstr);
 
+	/* Run some demo code on the liblmdb C API bindings */
 	lmdb_toy1(args);
 
+	/* Run some demo code using some more OO binding code (WIP) */
 	try {
 		lmdb_toy2(args);
 		lmdb_toy3(args);
 	}
 	catch (Exception ex) {
-		writeln("Catched exeception :", ex.msg);
+		writeln("Something wonderful has happened.\nCatched exeception :", ex.msg);
 	}
 }
 
+/** Display the lmdb error string in case of error
+ * @param rc Resultcode to check
+ * @param msg Message to display in case of error
+ * @param line Line number or __LINE__ if not given
+ * @return  bool, true if ok, false in case of error
+ */
 bool check_rc(int rc, string msg, int line = __LINE__)
 {
 	if (rc != 0)
@@ -39,10 +52,11 @@ bool check_rc(int rc, string msg, int line = __LINE__)
 	return true;
 }
 
+/* Import the complete module into scope */
 import lmdb;
 
 /** Simple test for the low-level C library calls
- *
+ * @param args Commandline args as a dynamic array of strings
  */
 void lmdb_toy1(const string[] args)
 {
@@ -61,21 +75,21 @@ void lmdb_toy1(const string[] args)
 	/* Note: Most error checking omitted for simplicity */
 
 	rc = mdb_env_create(&env);
-	if (!check_rc(rc, "Can't create MDB env")) goto leave2;
-	rc = mdb_env_open(env, "./testdb", 0, std.conv.octal!664);
-	if (!check_rc(rc, "Can't open MDB file")) goto leave2;
+	if (!check_rc(rc, "Can't create MDB env")) goto free_mdb_env;
+	rc = mdb_env_open(env, ".", 0, std.conv.octal!664);
+	if (!check_rc(rc, "Can't open MDB file")) goto free_mdb_env;
 
 	rc = mdb_txn_begin(env, null, 0, &txn);
-	if (!check_rc(rc, "Can't start the MDB transaction")) goto leave;
+	if (!check_rc(rc, "Can't start the MDB transaction")) goto close_mdb_databases;
 
 	rc = mdb_dbi_open(txn, null, 0, &dbi);
-	if (!check_rc(rc, "Can't open MDB index")) goto leave;
+	if (!check_rc(rc, "Can't open MDB index")) goto close_mdb_databases;
 
 	rc = mdb_drop(txn,dbi,0);
-	if (!check_rc(rc, "Can't drop MDB table")) goto leave;
+	if (!check_rc(rc, "Can't drop MDB table")) goto close_mdb_databases;
 
 	rc = mdb_dbi_flags(txn, dbi, &dbi_flags);
-	if (!check_rc(rc, "Can't read MDB flags")) goto leave;
+	if (!check_rc(rc, "Can't read MDB flags")) goto close_mdb_databases;
 
 	foreach (i; 0 .. 5)
 	{
@@ -94,15 +108,15 @@ void lmdb_toy1(const string[] args)
 					key.mv_data[0 .. key.mv_size], data.mv_data, data.mv_data[0 .. data.mv_size]);
 
 		rc = mdb_put(txn, dbi, &key, &data, 0);
-		if (!check_rc(rc, "Can't put MDB data")) goto leave;
+		if (!check_rc(rc, "Can't put MDB data")) goto close_mdb_databases;
 	}
 	rc = mdb_txn_commit(txn);
-	if (!check_rc(rc, "Can't commit MDB transaction")) goto leave;
+	if (!check_rc(rc, "Can't commit MDB transaction")) goto close_mdb_databases;
 
 	rc = mdb_txn_begin(env, null, MDB_RDONLY, &txn);
-	if (!check_rc(rc, "Can't start the MDB transaction")) goto leave;
+	if (!check_rc(rc, "Can't start the MDB transaction")) goto close_mdb_databases;
 	rc = mdb_cursor_open(txn, dbi, &cursor);
-	if (!check_rc(rc, "Can't open MDB index")) goto leave;
+	if (!check_rc(rc, "Can't open MDB index")) goto close_mdb_databases;
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_cursor_op.MDB_NEXT)) == 0)
 	{
 		ubyte[4] tmp = key.data!ubyte()[0..4];
@@ -111,20 +125,20 @@ void lmdb_toy1(const string[] args)
 		if (verbose)
 			writefln("GET: key: %x %s, data: %x %s", key.mv_data,
 					key.mv_data[0 .. key.mv_size], data.mv_data, data.mv_data[0 .. data.mv_size]);
-	mdb_cursor_close(cursor);
 	}
+	mdb_cursor_close(cursor);
 	mdb_txn_abort(txn);
 
 	rc = mdb_txn_begin(env, null, 0, &txn);
-	if (!check_rc(rc, "Can't start the MDB transaction")) goto leave;
+	if (!check_rc(rc, "Can't start the MDB transaction")) goto close_mdb_databases;
 	rc = mdb_cursor_open(txn, dbi, &cursor);
-	if (!check_rc(rc, "Can't open MDB index")) goto leave;
+	if (!check_rc(rc, "Can't open MDB index")) goto close_mdb_databases;
 	foreach (i; items) {
 		auto kval = nativeToBigEndian(i);
 		key.assign!(ubyte[4])(&kval, kval.length);
 		writefln("DEL: key: %x %s", key.mv_data, kval);
 		rc = mdb_del(txn, dbi, &key, null);
-		if (!check_rc(rc, "Can't open MDB index")) goto leave;
+		if (!check_rc(rc, "Can't open MDB index")) goto close_mdb_databases;
 	}
 //	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_cursor_op.MDB_FIRST)) == 0)
 //	{
@@ -133,16 +147,16 @@ void lmdb_toy1(const string[] args)
 //					key.mv_data[0 .. key.mv_size], data.mv_data, data.mv_data[0 .. data.mv_size]);
 //		// rc = mdb_cursor_del(cursor, 0);
 //		rc = mdb_del(txn, dbi, &key, null);
-//		if (!check_rc(rc, "Can't delete MDB index")) goto leave;
+//		if (!check_rc(rc, "Can't delete MDB index")) goto close_mdb_databases;
 //	}
 	mdb_cursor_close(cursor);
-	if (!check_rc(rc, "Can't del MDB item")) goto leave;
+	if (!check_rc(rc, "Can't del MDB item")) goto close_mdb_databases;
 	mdb_txn_commit(txn);
 
 	rc = mdb_txn_begin(env, null, MDB_RDONLY, &txn);
-	if (!check_rc(rc, "Can't start the MDB transaction")) goto leave;
+	if (!check_rc(rc, "Can't start the MDB transaction")) goto close_mdb_databases;
 	rc = mdb_cursor_open(txn, dbi, &cursor);
-	if (!check_rc(rc, "Can't open MDB index")) goto leave;
+	if (!check_rc(rc, "Can't open MDB index")) goto close_mdb_databases;
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_cursor_op.MDB_NEXT)) == 0)
 	{
 		ubyte[4] tmp = key.data!ubyte()[0..4];
@@ -155,10 +169,9 @@ void lmdb_toy1(const string[] args)
 	}
 	mdb_txn_abort(txn);
 
-
-leave:
+close_mdb_databases:
 	mdb_dbi_close(env, dbi);
-leave2:
+free_mdb_env:
 	mdb_env_close(env);
 }
 
@@ -176,7 +189,7 @@ void lmdb_toy2(const string[] args)
 	/* Note: Most error checking omitted for simplicity */
 
 	auto env = MdbEnv.create();
-	env.open("./testdb", 0, std.conv.octal!664);
+	env.open(".", 0, std.conv.octal!664);
 
 	auto txn = MdbTxn.begin(env.handle());
 	auto dbi = MdbDbi.open(txn.handle());
@@ -200,7 +213,7 @@ void lmdb_toy2(const string[] args)
 	MdbCursor cursor;
 
 	writeln("List of data items in DB. Remember items for deletion");
-	lmdb_toy2_iterate_readonly(env, txn, dbi, cursor, (MdbVal x) { items ~= new MdbVal(x); return true; }, verbose);
+	lmdb_iterate_readonly_job(env, txn, dbi, cursor, (MdbVal x) { items ~= new MdbVal(x); return true; }, verbose);
 
 	writefln("Delete %d remembered items", items.length);
 	txn = MdbTxn.begin(env.handle(), null, 0);
@@ -215,11 +228,79 @@ void lmdb_toy2(const string[] args)
 	txn.commit();
 
 	writeln("List of all remaining data items in DB.");
-	lmdb_toy2_iterate_readonly(env, txn, dbi, cursor, null, verbose);
+	lmdb_iterate_readonly_job(env, txn, dbi, cursor, null, verbose);
 
 	dbi.close(env);
 	env.close();
 }
+
+/* ------------------------------------------------------------------------- */
+
+
+struct myDataTable {
+	uint  field0;
+	uint  field1;
+	uint  field2;
+	uint  field3;
+	char[10] field4;
+	float field5;
+}
+
+void lmdb_toy3(const string[] args)
+{
+	int rc;
+	bool verbose = args.length >= 2 && args[1] == "-v" ? true : false;
+
+	/* Note: Most error checking omitted for simplicity */
+
+	auto env = MdbEnv.create();
+	env.open(".", 0, std.conv.octal!664);
+
+	auto txn = MdbTxn.begin(env.handle());
+	auto dbi = MdbDbi.open(txn.handle(), null, MDB_INTEGERKEY);
+
+	writeln("Create data items in DB.");
+	MdbVal key, data;
+	foreach (uint i; 0 .. 5)
+	{
+		ubyte[4] kval ; kval[0..4].write!uint(i, 0);
+		myDataTable table = { 42, 23, 17, i, };
+		table.field4[].sformat("Idx=%d\0", table.field3);
+		table.field5 = 3.14 * i;
+		key = new MdbVal(cast(void*)kval, kval.length);
+		data = new MdbVal(cast(void*)&table, table.sizeof);
+		if (verbose)
+			writefln("PUT: key: %s, data: %s", key, data);
+		rc = dbi.put(txn.handle(), key, data);
+	}
+	txn.commit();
+
+	MdbVal[] items;
+	MdbCursor cursor;
+
+	writeln("List of data items in DB. Remember items for deletion");
+	lmdb_iterate_readonly_job(env, txn, dbi, cursor, (MdbVal x) { items ~= new MdbVal(x); return true; }, verbose);
+
+	writefln("Delete %d remembered items", items.length);
+	txn = MdbTxn.begin(env.handle(), null, 0);
+	cursor = MdbCursor.open(txn.handle(), dbi.handle());
+	foreach (i; items)
+	{
+		if (verbose)
+			writefln("DEL: key: %s", i);
+		rc = dbi.del(txn.handle(), i);
+	}
+	cursor.close();
+	txn.commit();
+
+	writeln("List of all remaining data items in DB.");
+	lmdb_iterate_readonly_job(env, txn, dbi, cursor, null, verbose);
+
+	dbi.close(env);
+	env.close();
+}
+
+/* ------------------------------------------------------------------------- */
 
 /** Iterate through all nodes in RW mode, execute a delegate for each node.
  * @param env Reference to MdbEnv class
@@ -253,7 +334,7 @@ void lmdb_toy2_iterate_readwrite(MdbEnv env, MdbTxn txn, MdbDbi dbi, MdbCursor c
  * @param cursor Reference to MdbCursor class
  * @param fkt Delegate with reference to an MdbVal object. Returns bool=false to bereak loop.
  */
-void lmdb_toy2_iterate_readonly(MdbEnv env, MdbTxn txn, MdbDbi dbi, MdbCursor cursor, bool delegate (MdbVal) fkt, bool verbose = true)
+void lmdb_iterate_readonly_job(MdbEnv env, MdbTxn txn, MdbDbi dbi, MdbCursor cursor, bool delegate (MdbVal) fkt, bool verbose = true)
 {
 	int itemcount; bool fkt_rc;
 	MdbVal key = new MdbVal(), data = new MdbVal();
@@ -270,72 +351,4 @@ void lmdb_toy2_iterate_readonly(MdbEnv env, MdbTxn txn, MdbDbi dbi, MdbCursor cu
 	if (!itemcount) 
 		writeln("GET: Database seems to be empty.");
 	txn.abort();
-}
-
-/* ------------------------------------------------------------------------- */
-
-import std.bitmanip;
-import std.format;
-
-struct myDataTable {
-	uint  field0;
-	uint  field1;
-	uint  field2;
-	uint  field3;
-	char[10] field4;
-	float field5;
-}
-
-void lmdb_toy3(const string[] args)
-{
-	int rc;
-	bool verbose = args.length >= 2 && args[1] == "-v" ? true : false;
-
-	/* Note: Most error checking omitted for simplicity */
-
-	auto env = MdbEnv.create();
-	env.open("./testdb", 0, std.conv.octal!664);
-
-	auto txn = MdbTxn.begin(env.handle());
-	auto dbi = MdbDbi.open(txn.handle(), null, MDB_INTEGERKEY);
-
-	writeln("Create data items in DB.");
-	MdbVal key, data;
-	foreach (uint i; 0 .. 5)
-	{
-		ubyte[4] kval ; kval[0..4].write!uint(i, 0);
-		myDataTable table = { 42, 23, 17, i, };
-		table.field4[].sformat("Idx=%d\0", table.field3);
-		table.field5 = 3.14 * i;
-		key = new MdbVal(cast(void*)kval, kval.length);
-		data = new MdbVal(cast(void*)&table, table.sizeof);
-		if (verbose)
-			writefln("PUT: key: %s, data: %s", key, data);
-		rc = dbi.put(txn.handle(), key, data);
-	}
-	txn.commit();
-
-	MdbVal[] items;
-	MdbCursor cursor;
-
-	writeln("List of data items in DB. Remember items for deletion");
-	lmdb_toy2_iterate_readonly(env, txn, dbi, cursor, (MdbVal x) { items ~= new MdbVal(x); return true; }, verbose);
-
-	writefln("Delete %d remembered items", items.length);
-	txn = MdbTxn.begin(env.handle(), null, 0);
-	cursor = MdbCursor.open(txn.handle(), dbi.handle());
-	foreach (i; items)
-	{
-		if (verbose)
-			writefln("DEL: key: %s", i);
-		rc = dbi.del(txn.handle(), i);
-	}
-	cursor.close();
-	txn.commit();
-
-	writeln("List of all remaining data items in DB.");
-	lmdb_toy2_iterate_readonly(env, txn, dbi, cursor, null, verbose);
-
-	dbi.close(env);
-	env.close();
 }
