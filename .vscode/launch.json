@@ -7,10 +7,10 @@
         {
             "type": "gdb",
             "request": "launch",
-            "name": "Launch Program (gdb)",
-            "target": "./lmdb-d",
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": "build-host",
+            "name": "Launch Demo Program (gdb)",
+            "target": "./lmdb-d-demo",
+            "cwd": "${workspaceRoot}/docs/lmdb-d-demo/",
+            "preLaunchTask": "build-demo",
             "arguments": "-v"
         },
         {
@@ -18,8 +18,8 @@
             "type": "lldb-mi",
             "request": "launch",
             "target": "./lmdb-d",
-            "preLaunchTask": "build-host",
-            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build-demo",
+            "cwd": "${workspaceRoot}/docs/lmdb-d-demo/",
             "arguments": "-v"
         }
     ]

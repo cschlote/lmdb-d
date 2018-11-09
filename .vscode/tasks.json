@@ -18,6 +18,19 @@
         },
         {
             // Requires dub and ldc to be installed on host
+            "label": "build-demo",
+            "type": "shell",
+            "command": "cd docs/lmdb-d-demo && dub build --compiler=ldc2 -v",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            // Requires dub and ldc to be installed on host
             "label": "test-host",
             "type": "shell",
             "command": "dub test --compiler=ldc2 -v",
