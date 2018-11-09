@@ -14,3 +14,4 @@ lmdb-d-demo
 *.o
 *.obj
 *.lst
+*.mdb
