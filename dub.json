@@ -1,10 +1,9 @@
 {
-	"description": "A binding to the lmdb library.",
-	"license": "public domain",
+	"description": "A D language binding for the lmdb library.",
+	"license": "BSL-1.0",
 	"authors": [
 		"Carsten Schlote"
 	],
-	"copyright": "Copyright © 2018, Carsten Schlote",
 	"name": "lmdb_d",
 	"targetType": "autodetect",
 	"lflags": [
