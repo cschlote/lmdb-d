@@ -9,7 +9,7 @@ import std.random;
 import std.stdio;
 import std.string;
 
-import lmdb_d;
+//import lmdb_d;
 
 void main(const string[] args)
 {

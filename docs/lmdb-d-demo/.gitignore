@@ -8,6 +8,8 @@ lmdb-d-demo.dll
 lmdb-d-demo.a
 lmdb-d-demo.lib
 lmdb-d-demo-test-*
+dub.selections.json
+lmdb-d-demo
 *.exe
 *.o
 *.obj
