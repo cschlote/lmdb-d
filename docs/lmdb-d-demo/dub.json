@@ -1,0 +1,12 @@
+{
+	"description": "Some example code for the lmdb binding.",
+	"license": "Public Domain",
+	"authors": [
+		"Carsten Schlote"
+	],
+	"copyright": "Created © 2018, Carsten Schlote",
+	"dependencies": {
+		"lmdb_d":"0.2.0"
+	},
+	"name": "lmdb-d-demo"
+}

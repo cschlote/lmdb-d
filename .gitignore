@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+lmdb-d
+lmdb-d.so
+lmdb-d.dylib
+lmdb-d.dll
+liblmdb-d.a
+lmdb-d.lib
+lmdb-d-test-*
+*.exe
+*.o
+*.obj
+*.lst
+*~
+

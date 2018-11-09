@@ -1,0 +1,13 @@
+{
+	"description": "A binding to the lmdb library.",
+	"license": "public domain",
+	"authors": [
+		"Carsten Schlote"
+	],
+	"copyright": "Copyright © 2018, Carsten Schlote",
+	"name": "lmdb_d",
+	"targetType": "autodetect",
+	"lflags": [
+		"-llmdb"
+	]
+}

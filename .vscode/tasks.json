@@ -1,0 +1,83 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            // Requires dub and ldc to be installed on host
+            "label": "build-host",
+            "type": "shell",
+            "command": "dub build --compiler=ldc2 -v",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            // Requires dub and ldc to be installed on host
+            "label": "test-host",
+            "type": "shell",
+            "command": "dub test --compiler=ldc2 -v",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            // See https://wiki.dlang.org/Programming_in_D_tutorial_on_Embedded_Linux_ARM_devices
+            "label": "build-arm",
+            "type": "shell",
+            "command": "dub build --compiler=ldc-arm -v",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            // See https://wiki.dlang.org/Programming_in_D_tutorial_on_Embedded_Linux_ARM_devices
+            "label": "test-arm",
+            "type": "shell",
+            "command": "dub test --compiler=ldc-arm -v",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "dub clean -v",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "build-doxygen",
+            "type": "shell",
+            "command": "dub clean -v",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}
