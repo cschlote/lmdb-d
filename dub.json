@@ -1,6 +1,6 @@
 {
 	"description": "A D language binding for the lmdb library.",
-	"license": "BSL-1.0",
+	"license": "OpenLDAP",
 	"authors": [
 		"Carsten Schlote"
 	],
