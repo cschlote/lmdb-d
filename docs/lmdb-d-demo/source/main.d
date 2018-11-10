@@ -10,6 +10,10 @@ import std.random;
 import std.stdio;
 import std.string;
 
+/* Import the binding modules into scope */
+import lmdb;
+import lmdb_oo;
+
 /** Minimalistic demo code for lmdb 
  * @param args Commandline args as a dynamic array of strings
  */
@@ -51,9 +55,6 @@ bool check_rc(int rc, string msg, int line = __LINE__)
 	}
 	return true;
 }
-
-/* Import the complete module into scope */
-import lmdb;
 
 /** Simple test for the low-level C library calls
  * @param args Commandline args as a dynamic array of strings
@@ -176,8 +177,6 @@ free_mdb_env:
 }
 
 /* ------------------------------------------------------------------ */
-
-import lmdb_oo;
 
 /** Simple test for the D OO-layer classes and operation
  */
