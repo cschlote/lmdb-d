@@ -1,0 +1,77 @@
+
+image: gitlab.vahanus.net:5050/vahanus/public/container-ubuntu-dlang-dev:latest
+
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
+
+before_script:
+  - echo "Working on $CI_COMMIT_REF_NAME / $CI_COMMIT_SHA ..."
+  - if command -v docker ; then echo "${CI_REGISTRY_PASSWORD}" | docker login -u "${CI_REGISTRY_USER}" --password-stdin docker.vahanus.com ; fi
+
+stages:
+  - lint
+  - build
+  - test
+  - docs
+  - deploy
+
+#----------------------------------------------------------------------
+
+lint program:
+  tags:
+    - gitlabdocker
+  stage: lint
+  script:
+    - echo "linting $CI_COMMIT_REF_NAME / $CI_COMMIT_SHA ..."
+    - dub lint
+
+#----------------------------------------------------------------------
+
+build program:
+  tags:
+    - gitlabdocker
+  stage: build
+  script:
+    - dub build
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_SLUG"
+    paths:
+      - liblmdb_d.a
+
+#----------------------------------------------------------------------
+
+test program:
+  tags:
+    - gitlabdocker
+  stage: test
+  script:
+    - apt update && apt install -y liblmdb-dev
+    - dub test
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_SLUG"
+    paths:
+      - lmdb_d-test-library
+
+#----------------------------------------------------------------------
+
+build docs:
+  tags:
+    - gitlabdocker
+  stage: docs
+  script:
+    - dub build -b ddox
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_SLUG"
+    untracked: true
+    paths:
+      - docs/
+
+#----------------------------------------------------------------------
+
+deploy program:
+  tags:
+    - gitlabdocker
+  stage: deploy
+  script:
+    - echo "Setup a Vahanus artifactory first!"
+  when: manual
