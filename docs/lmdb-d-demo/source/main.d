@@ -1,6 +1,4 @@
-/** lmdb bining test executable
- * @file
- */
+/* lmdb bining test executable */
 import core.stdc.string;
 
 import std.bitmanip;
@@ -183,7 +181,7 @@ free_mdb_env:
 void lmdb_toy2(const string[] args)
 {
 	int rc;
-	bool verbose = args.length >= 2 && args[1] == "-v" ? true : false;
+	const bool verbose = args.length >= 2 && args[1] == "-v" ? true : false;
 
 	/* Note: Most error checking omitted for simplicity */
 
@@ -235,20 +233,21 @@ void lmdb_toy2(const string[] args)
 
 /* ------------------------------------------------------------------------- */
 
-
-struct myDataTable {
-	uint  field0;
-	uint  field1;
-	uint  field2;
-	uint  field3;
-	char[10] field4;
-	float field5;
+/** Some data structure */
+struct MyDataTable {
+	uint  field0; ///< Some filed...
+	uint  field1; ///<
+	uint  field2; ///<
+	uint  field3; ///<
+	char[10] field4; ///<
+	float field5; ///<
 }
 
+/** Some test code */
 void lmdb_toy3(const string[] args)
 {
 	int rc;
-	bool verbose = args.length >= 2 && args[1] == "-v" ? true : false;
+	const bool verbose = args.length >= 2 && args[1] == "-v" ? true : false;
 
 	/* Note: Most error checking omitted for simplicity */
 
@@ -263,7 +262,7 @@ void lmdb_toy3(const string[] args)
 	foreach (uint i; 0 .. 5)
 	{
 		ubyte[4] kval ; kval[0..4].write!uint(i, 0);
-		myDataTable table = { 42, 23, 17, i, };
+		MyDataTable table = { 42, 23, 17, i, };
 		table.field4[].sformat("Idx=%d\0", table.field3);
 		table.field5 = 3.14 * i;
 		key = new MdbVal(cast(void*)kval, kval.length);
@@ -328,12 +327,14 @@ void lmdb_toy2_iterate_readwrite(MdbEnv env, MdbTxn txn, MdbDbi dbi, MdbCursor c
 }
 
 /** Iterate through all nodes in RO mode, execute a delegate for each node.
- * @param env Reference to MdbEnv class
- * @param tcn Reference to MdbTxn class
- * @param cursor Reference to MdbCursor class
- * @param fkt Delegate with reference to an MdbVal object. Returns bool=false to bereak loop.
+ * Params:
+ *    env = Reference to MdbEnv class
+ *    tcn = Reference to MdbTxn class
+ *    cursor = Reference to MdbCursor class
+ *    fkt = Delegate with reference to an MdbVal object. Returns bool=false to bereak loop.
  */
-void lmdb_iterate_readonly_job(MdbEnv env, MdbTxn txn, MdbDbi dbi, MdbCursor cursor, bool delegate (MdbVal) fkt, bool verbose = true)
+void lmdb_iterate_readonly_job(MdbEnv env, MdbTxn txn, MdbDbi dbi, MdbCursor cursor, 
+	bool delegate (MdbVal) fkt, bool verbose = true)
 {
 	int itemcount; bool fkt_rc;
 	MdbVal key = new MdbVal(), data = new MdbVal();

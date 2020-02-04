@@ -739,8 +739,8 @@ public:
     }
 
 	/** Print it some useful way... */
-	override string toString() {
-		import std.format;
+	override string toString() const {
+		import std.format : format;
 		return format("%x @ %d %s", _val.data!(ubyte*)(), _val.size(), _val.data!ubyte()[0.._val.size()]);
 	}
 }
@@ -1053,14 +1053,16 @@ public:
         mdb_dbi_open(txn, name, flags, &handle);
         return new MdbDbi(handle);
     }
+    /** Close a database handle
+    * Param: 
+    *   env = an MdbEnv
+    */
     void close(MdbEnv env) {
         mdb_dbi_close(env.handle(), _handle);
     }
 
-    /**
-   * Constructor.
-   *
-   * @param handle a valid `MDB_dbi` handle
+    /** Constructor.
+   * Param:  handle = a valid `MDB_dbi` handle
    */
     this(const MDB_dbi handle) nothrow {
         _handle = handle;
