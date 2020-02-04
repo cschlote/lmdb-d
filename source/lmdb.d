@@ -258,13 +258,13 @@ struct MDB_val {
     /** Constructor to setup structure from a string. */
     this(const string data) nothrow {
         import std.string;
-        this(toStringz(data), data.sizeof);
+        this(toStringz(data), data.length+1);
     }
 
     /** Constructor to setup structure from a C string. */
     this(const char* data) nothrow {
         import core.stdc.string;
-        this(data, strlen(data));
+        this(data, strlen(data)+1);
     }
 
     /** Constructor to setup structure from abitrary data. */
@@ -315,7 +315,7 @@ struct MDB_val {
     /** Assigns new structure values from a const C-string. */
     ref MDB_val assign(const char* data) nothrow {
         import core.stdc.string;
-        return assign(data, strlen(data));
+        return assign(data, strlen(data)+1);
     }
 
     /** Assigns new structure values from abitrary data.. */
